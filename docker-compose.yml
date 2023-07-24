@@ -1,0 +1,96 @@
+version: "3.9"
+
+services:
+  mysql:
+    image: mysql:8.0.29
+    container_name: mysql
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: mysql
+      MYSQL_USER: mysql
+      MYSQL_PASSWORD: mysql
+      MYSQL_DATABASE: 
+
+
+  mariadb:
+    image: mariadb:10.6
+    container_name: mariadb
+    ports:
+      - 3306:3306
+    volumes:
+      - "./docker/mariadb/data:/var/lib/mysql"
+      - "./docker/mariadb/conf:/etc/mysql/conf.d"
+    environment:
+      MARIADB_ROOT_PASSWORD: maria
+      MARIADB_USER: maria
+      MARIADB_PASSWORD: maria
+      MARIADB_DATABASE: 
+    restart: always
+
+  mariadb-test:
+    image: mariadb:10.6
+    container_name: mariadb-test
+    ports:
+      - 23306:3306
+    environment:
+      MARIADB_ROOT_PASSWORD: maria
+      MARIADB_USER: maria
+      MARIADB_PASSWORD: maria
+      MARIADB_DATABASE: test_db
+    restart: always
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: postgres
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - '6379:6379'
+
+  redis-cluster:
+    image: grokzen/redis-cluster:latest
+    container_name: redis-cluster
+    ports:
+      - '7001-7006:7001-7006'
+    environment:
+      IP: 0.0.0.0
+
+
+  dynamodb:
+    image: "amazon/dynamodb-local:latest"
+    container_name: dynamodb-local
+    command: "-jar DynamoDBLocal.jar -port 8001 -sharedDb -dbPath ./data"
+    ports:
+      - "8001:8001"
+    volumes:
+      - "./dynamodb:/home/dynamodblocal/data"
+    working_dir: /home/dynamodblocal
+
+  xray-daemon:
+    image: amazon/aws-xray-daemon:latest
+    container_name: xray-daemon
+    #    entrypoint: ["/usr/bin/xray", "-t", "0.0.0.0:2000", "-b", "0.0.0.0:2000"]
+    environment:
+      - AWS_REGION=ap-east-1
+    ports:
+      - "2000:2000/udp"
+      - "2000:2000/tcp"
+
+  tomcat-server:
+    image: tomcat:9.0.68-jre8-temurin-jammy
+    container_name: tomcat-server
+    volumes:
+      - "$PWD/tomcat:/usr/local/tomcat"
+    ports:
+      - "8880:8080"
+    restart: unless-stopped
+
+volumes:
+  arzu_api:
